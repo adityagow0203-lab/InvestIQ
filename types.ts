@@ -5,7 +5,8 @@ export enum AppView {
   DASHBOARD = 'DASHBOARD',
   STOCK_DETAIL = 'STOCK_DETAIL',
   SUMMARY = 'SUMMARY',
-  ADMIN = 'ADMIN'
+  ADMIN = 'ADMIN',
+  HISTORY = 'HISTORY'
 }
 
 export interface User {
@@ -37,6 +38,26 @@ export interface PortfolioItem extends Stock {
   dateInvested: string;
 }
 
+export interface Transaction {
+  id: string;
+  type: 'BUY' | 'SELL' | 'ADJUST';
+  symbol: string;
+  name: string;
+  quantity: number;
+  price: number;
+  date: string;
+  total: number;
+}
+
+export interface PriceAlert {
+  id: string;
+  symbol: string;
+  targetPrice: number;
+  condition: 'ABOVE' | 'BELOW';
+  isActive: boolean;
+  createdAt: string;
+}
+
 export interface ChatMessage {
   id: string;
   text: string;
@@ -59,6 +80,14 @@ export interface SystemStatus {
   memory: number;
   activeConnections: number;
   databaseStatus: 'Healthy' | 'Degraded' | 'Maintenance';
+}
+
+export interface NewsArticle {
+  id: string;
+  title: string;
+  source: string;
+  time: string;
+  sentiment: 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL';
 }
 
 export type TimeRange = '1D' | '1W' | '1M';

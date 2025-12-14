@@ -18,11 +18,15 @@ export const AdminPanel: React.FC<AdminProps> = ({ setView, availableStocks, upd
   const [editPrice, setEditPrice] = useState<string>('');
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
 
-  // Mock User Data
+  // User Management State
+  const [userSearch, setUserSearch] = useState('');
+  const [userFilter, setUserFilter] = useState<'ALL' | 'ACTIVE' | 'SUSPENDED'>('ALL');
   const [users, setUsers] = useState<AdminUserView[]>([
     { id: '1', username: 'john_doe', email: 'john@example.com', status: 'ACTIVE', lastLogin: '2023-10-25T10:30:00Z' },
     { id: '2', username: 'jane_smith', email: 'jane@example.com', status: 'ACTIVE', lastLogin: '2023-10-24T14:15:00Z' },
     { id: '3', username: 'trader_x', email: 'x@crypto.com', status: 'SUSPENDED', lastLogin: '2023-09-15T09:00:00Z' },
+    { id: '4', username: 'michael_b', email: 'mike@finance.net', status: 'ACTIVE', lastLogin: '2023-10-26T08:45:00Z' },
+    { id: '5', username: 'sarah_connor', email: 'sarah@skynet.com', status: 'ACTIVE', lastLogin: '2023-10-26T11:20:00Z' },
   ]);
 
   // Real-time updates
@@ -88,7 +92,6 @@ export const AdminPanel: React.FC<AdminProps> = ({ setView, availableStocks, upd
   };
 
   const handleResolve = () => {
-     // Mock resolving an issue
      const successLog: ApiLog = {
         id: Date.now().toString(),
         timestamp: new Date().toISOString(),
@@ -109,6 +112,14 @@ export const AdminPanel: React.FC<AdminProps> = ({ setView, availableStocks, upd
           setUsers(prev => prev.filter(u => u.id !== id));
       }
   };
+
+  // Filter Users
+  const filteredUsers = users.filter(user => {
+      const matchesSearch = user.username.toLowerCase().includes(userSearch.toLowerCase()) || 
+                            user.email.toLowerCase().includes(userSearch.toLowerCase());
+      const matchesFilter = userFilter === 'ALL' || user.status === userFilter;
+      return matchesSearch && matchesFilter;
+  });
 
   return (
     <div className="min-h-screen bg-slate-950 font-sans text-slate-200">
@@ -350,8 +361,30 @@ export const AdminPanel: React.FC<AdminProps> = ({ setView, availableStocks, upd
         {activeTab === 'USERS' && (
             <div className="bg-slate-900/50 border border-slate-800 rounded-lg overflow-hidden animate-fade-in">
                 <div className="p-6 border-b border-slate-800">
-                    <h2 className="text-lg font-bold text-white">User Management</h2>
-                    <p className="text-sm text-slate-400">Manage access control. User asset details are encrypted and hidden from view.</p>
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h2 className="text-lg font-bold text-white">User Management</h2>
+                            <p className="text-sm text-slate-400">Manage access control and view user status.</p>
+                        </div>
+                        <div className="flex gap-2 w-full md:w-auto">
+                            <input 
+                                type="text" 
+                                placeholder="Search users..." 
+                                className="bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:border-sky-500 focus:outline-none w-full md:w-48"
+                                value={userSearch}
+                                onChange={(e) => setUserSearch(e.target.value)}
+                            />
+                            <select 
+                                className="bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:border-sky-500 focus:outline-none"
+                                value={userFilter}
+                                onChange={(e) => setUserFilter(e.target.value as any)}
+                            >
+                                <option value="ALL">All Status</option>
+                                <option value="ACTIVE">Active</option>
+                                <option value="SUSPENDED">Suspended</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
@@ -365,34 +398,42 @@ export const AdminPanel: React.FC<AdminProps> = ({ setView, availableStocks, upd
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-800 text-sm">
-                            {users.map(u => (
-                                <tr key={u.id} className="hover:bg-slate-800/50 transition-colors">
-                                    <td className="p-4 font-bold text-white">{u.username}</td>
-                                    <td className="p-4 text-slate-300">{u.email}</td>
-                                    <td className="p-4">
-                                        <span className={`px-2 py-1 rounded text-[10px] font-bold border ${u.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
-                                            {u.status}
-                                        </span>
-                                    </td>
-                                    <td className="p-4 text-slate-400 font-mono text-xs">
-                                        {new Date(u.lastLogin).toLocaleString()}
-                                    </td>
-                                    <td className="p-4 text-right space-x-2">
-                                        <button 
-                                            onClick={() => toggleUserStatus(u.id)}
-                                            className="text-xs text-slate-400 hover:text-white underline"
-                                        >
-                                            {u.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
-                                        </button>
-                                        <button 
-                                            onClick={() => deleteUser(u.id)}
-                                            className="text-xs text-red-500 hover:text-red-400 underline"
-                                        >
-                                            Delete
-                                        </button>
+                            {filteredUsers.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="p-8 text-center text-slate-500">
+                                        No users found matching your search.
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                filteredUsers.map(u => (
+                                    <tr key={u.id} className="hover:bg-slate-800/50 transition-colors">
+                                        <td className="p-4 font-bold text-white">{u.username}</td>
+                                        <td className="p-4 text-slate-300">{u.email}</td>
+                                        <td className="p-4">
+                                            <span className={`px-2 py-1 rounded text-[10px] font-bold border ${u.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
+                                                {u.status}
+                                            </span>
+                                        </td>
+                                        <td className="p-4 text-slate-400 font-mono text-xs">
+                                            {new Date(u.lastLogin).toLocaleString()}
+                                        </td>
+                                        <td className="p-4 text-right space-x-2">
+                                            <button 
+                                                onClick={() => toggleUserStatus(u.id)}
+                                                className="text-xs text-slate-400 hover:text-white underline"
+                                            >
+                                                {u.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
+                                            </button>
+                                            <button 
+                                                onClick={() => deleteUser(u.id)}
+                                                className="text-xs text-red-500 hover:text-red-400 underline"
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
