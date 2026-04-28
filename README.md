@@ -18,3 +18,4 @@ View your app in AI Studio: https://ai.studio/apps/drive/1YsjnOkl2tc7Aon7pcweVP5
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+https://stitch.withgoogle.com/preview/4026236254196531733?node-id=21ff5eb913ff45c791cc4c945eac704f
